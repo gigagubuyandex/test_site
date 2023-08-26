@@ -9,15 +9,22 @@
 </head>
 <body>
   <div class="container">
-    <form action="">
-      <h3>GET IN TOUCH</h3>
+    <div class="form">
+    <!-- <form action=""> -->
+      <h3><a class="calltouch_phone" href="tel:+79000000000">+7 900 000 00 00</a></h3>
       <input type="text" id="name" placeholder="Your Name" required>
       <input type="email" id="email" placeholder="Your Email" required>
       <input type="tel" id="phone" placeholder="Your Phone" required>
       <textarea id="message" rows="4" placeholder="Commentary"></textarea>
       <button type="submit">Send</button>
-    </form>
+    <!-- </form> -->
+    </div>
   </div>
   <script src="script.js"></script>
+  <!-- calltouch -->
+  <script>
+  (function(w,d,n,c){w.CalltouchDataObject=n;w[n]=function(){w[n]["callbacks"].push(arguments)};if(!w[n]["callbacks"]){w[n]["callbacks"]=[]}w[n]["loaded"]=false;if(typeof c!=="object"){c=[c]}w[n]["counters"]=c;for(var i=0;i<c.length;i+=1){p(c[i])}function p(cId){var a=d.getElementsByTagName("script")[0],s=d.createElement("script"),i=function(){a.parentNode.insertBefore(s,a)},m=typeof Array.prototype.find === 'function',n=m?"init-min.js":"init.js";s.async=true;s.src="https://mod.calltouch.ru/"+n+"?id="+cId;if(w.opera=="[object Opera]"){d.addEventListener("DOMContentLoaded",i,false)}else{i()}}})(window,document,"ct","7mvmnami");
+  </script>
+  <!-- calltouch -->
 </body>
 </html>

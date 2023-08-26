@@ -1,11 +1,11 @@
 jQuery(document).on('submit','form', function() {
     var m = jQuery(this);
-    var formName = m.find('input[name*="d[4]"]').val();
-    var mail = m.find('input[name*="email"]').val();
-    var fio = m.find('input[name*="name"],input[placeholder*="имя"]').val();
-    var phone = m.find('input[name*="phone"],input.phone').val();
-    var comment = m.find('textarea[name*="comment"]').val();
-    var ct_site_id = '_____';
+    // var formName = m.find('input[name*="d[4]"]').val();
+    var mail = m.find('#email').val();
+    var fio = m.find('#name').val();
+    var phone = m.find('phone').val();
+    var comment = m.find('#message').val();
+    // var ct_site_id = '42118';
     var sub = 'Заявка c ' + location.hostname;
     if(!!formName ){sub = formName + ' c ' + location.hostname;}
     var ct_data = {
