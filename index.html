@@ -26,30 +26,5 @@
 (function(w,d,n,c){w.CalltouchDataObject=n;w[n]=function(){w[n]["callbacks"].push(arguments)};if(!w[n]["callbacks"]){w[n]["callbacks"]=[]}w[n]["loaded"]=false;if(typeof c!=="object"){c=[c]}w[n]["counters"]=c;for(var i=0;i<c.length;i+=1){p(c[i])}function p(cId){var a=d.getElementsByTagName("script")[0],s=d.createElement("script"),i=function(){a.parentNode.insertBefore(s,a)},m=typeof Array.prototype.find === 'function',n=m?"init-min.js":"init.js";s.async=true;s.src="https://mod.calltouch.ru/"+n+"?id="+cId;if(w.opera=="[object Opera]"){d.addEventListener("DOMContentLoaded",i,false)}else{i()}}})(window,document,"ct","1z5rieug");
 </script>
 <!-- calltouch -->
-<!-- Calltouch Pixel -->
-<!-- Calltouch Pixel -->
-<script type="text/javascript">
-  // Ждать загрузку скрипта
-  onSessionCallValue();
-
-  function onSessionCallValue(session_id, specific_id){
-    (function (m, e, t, r, i, k, a) {
-            m['mtsMetricObject'] = i;
-            m[i] = m[i] ||
-              function () {
-                (m[i].a = m[i].a || []).push(arguments);
-              };
-            m[i].l = 1 * new Date();
-            (k = e.createElement(t)),
-              (a = e.getElementsByTagName(t)[0]),
-              (k.async = 1),
-              (k.src = r),
-              a.parentNode.insertBefore(k, a);
-            })(window, document, 'script', 'https://static.a.mts.ru/front-metric-sdk/metric.js', 'mm');
-          mm('create', {id: '0ad85a39-9662-1811-8196-8189768b001a', sendPageView: false, trackBounce:true, fingerprint: false, plugins:[{ name:'pagePing' }]});
-          mm('message', 'scrn', {'SessionID': window.call_value, 'EventContext':'1z5rieug', 'ClientID':window.ct('calltracking_params', '1z5rieug').ctClientId});
-  }
-</script>
-<!-- Calltouch Pixel -->
 </body>
 </html>
