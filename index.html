@@ -18,6 +18,25 @@
       <textarea id="message" rows="4" placeholder="Commentary"></textarea>
       <button type="submit">Send</button>
     <!-- </form> -->
+      <div class="ecom" id="ecom-panel">
+        <h4>Электронная торговля Calltouch</h4>
+        <p id="ecom-mode"></p>
+        <p>Товар: <code id="ecom-product"></code></p>
+        <div class="ecom-actions">
+          <button type="button" data-ecom="detail">Просмотр</button>
+          <button type="button" data-ecom="addToCart">В корзину 100</button>
+          <button type="button" data-ecom="removeFromCart">Удаление 40</button>
+          <button type="button" data-ecom="checkout">Оформление 100</button>
+          <button type="button" data-ecom="purchase">Оплата 100</button>
+          <button type="button" data-ecom="all">Все 5 событий</button>
+        </div>
+        <p class="ecom-links">
+          <a id="ecom-entry-link" href="/entry-">Автосев /entry-дата</a>
+          ·
+          <a id="ecom-control-link" href="/control-">Контроль /control-дата</a>
+        </p>
+        <pre id="ecom-log"></pre>
+      </div>
     </div>
   </div>
   <script src="script.js"></script>
@@ -26,5 +45,6 @@
 (function(w,d,n,c){w.CalltouchDataObject=n;w[n]=function(){w[n]["callbacks"].push(arguments)};if(!w[n]["callbacks"]){w[n]["callbacks"]=[]}w[n]["loaded"]=false;if(typeof c!=="object"){c=[c]}w[n]["counters"]=c;for(var i=0;i<c.length;i+=1){p(c[i])}function p(cId){var a=d.getElementsByTagName("script")[0],s=d.createElement("script"),i=function(){a.parentNode.insertBefore(s,a)},m=typeof Array.prototype.find === 'function',n=m?"init-min.js":"init.js";s.async=true;s.src="https://mod.calltouch.ru/"+n+"?id="+cId;if(w.opera=="[object Opera]"){d.addEventListener("DOMContentLoaded",i,false)}else{i()}}})(window,document,"ct","1z5rieug");
 </script>
 <!-- calltouch -->
+<script src="ecommerce.js"></script>
 </body>
 </html>
