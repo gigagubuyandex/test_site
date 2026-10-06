@@ -51,12 +51,21 @@
     return new Promise(function (resolve, reject) {
       var started = Date.now();
       (function tick() {
-        if (typeof window.ct === "function" && window.ct.loaded) {
+        if (typeof window.ct !== "function") {
+          if (Date.now() - started > timeoutMs) {
+            reject(new Error("Calltouch ct не загрузился за " + timeoutMs + " мс"));
+            return;
+          }
+          setTimeout(tick, 200);
+          return;
+        }
+        if (window.ct.loaded) {
           resolve();
           return;
         }
-        if (Date.now() - started > timeoutMs) {
-          reject(new Error("Calltouch ct не загрузился за " + timeoutMs + " мс"));
+        var initScript = document.querySelector('script[src*="mod.calltouch.ru/init"]');
+        if (initScript || Date.now() - started > 1500) {
+          resolve();
           return;
         }
         setTimeout(tick, 200);
