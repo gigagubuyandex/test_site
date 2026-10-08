@@ -1,0 +1,13 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/entry-*"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/control-*"
+  to = "/index.html"
+  status = 200

@@ -79,6 +79,49 @@
     });
   }
 
+  function qaApiBase() {
+    if (window.QA_API_BASE) return String(window.QA_API_BASE).replace(/\/+$/, "");
+    if (/^localhost$|^127\.0\.0\.1$/.test(location.hostname)) return "";
+    return null;
+  }
+
+  function recordSession(route, events) {
+    var base = qaApiBase();
+    if (base === null) {
+      logLine("QA API пропущен (не localhost; задайте window.QA_API_BASE)");
+      return Promise.resolve(null);
+    }
+    var role = route.mode === "control" ? "control" : "positive";
+    var body = {
+      tested_at: new Date().toISOString(),
+      role: role,
+      cohort: "session_main",
+      audience_params: [],
+      fingerprint: null,
+      user_agent: navigator.userAgent,
+      entry_url: location.href,
+      ecom_events: events || [],
+      status: "done"
+    };
+    return fetch(base + "/api/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error("sessions HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (row) {
+        logLine("сессия записана в QA DB id=" + row.id);
+        return row;
+      })
+      .catch(function (err) {
+        logLine("не удалось записать сессию: " + err.message);
+        return null;
+      });
+  }
+
   function send(method, payload) {
     return waitForCt(15000).then(function () {
       window.ct("send_ecommerce", method, payload);
@@ -86,7 +129,8 @@
     });
   }
 
-  function sendChain(steps) {
+  function sendChain(steps, route) {
+    var sent = [];
     var chain = Promise.resolve();
     steps.forEach(function (step, index) {
       chain = chain.then(function () {
@@ -95,12 +139,18 @@
           return sleep(EVENT_GAP_MS);
         }
       }).then(function () {
-        return send(step.method, step.payload);
+        return send(step.method, step.payload).then(function () {
+          sent.push({ event: step.method, value: step.payload });
+        });
       });
     });
-    return chain.catch(function (err) {
-      logLine("ошибка: " + err.message);
-    });
+    return chain
+      .then(function () {
+        return recordSession(route || { mode: "tester" }, sent);
+      })
+      .catch(function (err) {
+        logLine("ошибка: " + err.message);
+      });
   }
 
   function seedSteps(date) {
@@ -148,7 +198,7 @@
       btn.addEventListener("click", function () {
         var method = btn.getAttribute("data-ecom");
         if (method === "all") {
-          sendChain(seedSteps(date));
+          sendChain(seedSteps(date), route);
           return;
         }
         var steps = seedSteps(date);
@@ -156,9 +206,13 @@
           return step.method === method;
         })[0];
         if (found) {
-          send(found.method, found.payload).catch(function (err) {
-            logLine("ошибка: " + err.message);
-          });
+          send(found.method, found.payload)
+            .then(function () {
+              return recordSession(route, [{ event: found.method, value: found.payload }]);
+            })
+            .catch(function (err) {
+              logLine("ошибка: " + err.message);
+            });
         }
       });
     });
@@ -170,9 +224,11 @@
 
     if (route.mode === "entry") {
       logLine("старт автосева для " + route.date);
-      sendChain(seedSteps(route.date));
+      sendChain(seedSteps(route.date), route);
     } else if (route.mode === "control") {
       logLine("контрольный визит, e-comm пропущен");
+      recordSession(route, []);
     }
   });
 })();
+

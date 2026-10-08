@@ -1,0 +1,28 @@
+{
+    "errors": {
+        "errorMessage": "Ошибка валидации",
+        "errorType": "validationError",
+        "errorTitle": "Ошибка валидации",
+        "errorDetails": {
+            "fields": {
+                "conditions": [
+                    {
+                        "clientError": "Блок клиенты должен быть первым"
+                    }
+                ]
+            },
+            "fieldErrors": [
+                {
+                    "id": "conditions",
+                    "errors": [
+                        {
+                            "message": "Блок клиенты должен быть первым"
+                        }
+                    ],
+                    "name": "conditions"
+                }
+            ]
+        }
+    },
+    "meta": []
+}

@@ -25,6 +25,15 @@
   border-radius: 10px;
 }
 
+.sandbox-version {
+  color: #888;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0 0 12px;
+}
+
 .form h3 {
   color: #555;
   font-weight: 800;

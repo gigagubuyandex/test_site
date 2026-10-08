@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QA Journal — Admin</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a2332;
+      --text: #e7ecf3;
+      --muted: #8b9bb4;
+      --accent: #3d8bfd;
+      --line: #2a3548;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: linear-gradient(160deg, #0f1419 0%, #162033 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+    h1 { font-size: 1.4rem; margin: 0 0 4px; }
+    .sub { color: var(--muted); margin-bottom: 24px; font-size: 0.9rem; }
+    nav { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    nav button, .btn {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+    nav button.active, .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+    input, textarea, select {
+      width: 100%;
+      background: #0f1419;
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+    }
+    textarea { min-height: 80px; font-family: ui-monospace, Consolas, monospace; font-size: 0.85rem; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    .mono { font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; word-break: break-all; }
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .err { color: #ff8b8b; margin: 8px 0; }
+    .ok { color: #7ddea2; margin: 8px 0; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>QA Journal</h1>
+    <p class="sub">Локальный журнал аудиторий, сессий и результатов · <span id="health">…</span></p>
+    <nav>
+      <button type="button" class="active" data-tab="audiences">Аудитории</button>
+      <button type="button" data-tab="sessions">Сессии</button>
+      <button type="button" data-tab="results">Результаты</button>
+    </nav>
+
+    <section id="tab-audiences">
+      <div class="panel">
+        <h3>Новая аудитория</h3>
+        <div class="grid">
+          <div>
+            <label>name</label>
+            <input id="a-name" placeholder="qa-08_10_2026-session_ecommerce_has_purchase-primary">
+          </div>
+          <div>
+            <label>calltouch_audience_id</label>
+            <input id="a-ct-id" placeholder="id из Calltouch">
+          </div>
+          <div>
+            <label>expected_clients</label>
+            <input id="a-expected" type="number" placeholder="100">
+          </div>
+          <div>
+            <label>lacmus / clients_count</label>
+            <input id="a-lacmus" type="number" placeholder="100">
+          </div>
+        </div>
+        <label>params (JSON)</label>
+        <textarea id="a-params">{"key":"session_ecommerce_has_purchase","role":"primary","wave":"1"}</textarea>
+        <button type="button" class="btn primary" id="a-create">Создать</button>
+        <div id="a-msg"></div>
+      </div>
+      <div class="panel">
+        <h3>Список</h3>
+        <div id="a-list"></div>
+      </div>
+    </section>
+
+    <section id="tab-sessions" class="hidden">
+      <div class="panel">
+        <h3>Сессии</h3>
+        <div id="s-list"></div>
+      </div>
+    </section>
+
+    <section id="tab-results" class="hidden">
+      <div class="panel">
+        <h3>Результаты тестов</h3>
+        <div id="r-list"></div>
+      </div>
+    </section>
+  </main>
+  <script>
+    async function api(path, options) {
+      const res = await fetch(path, {
+        headers: { "Content-Type": "application/json" },
+        ...options
+      });
+      if (res.status === 204) return null;
+      const data = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      return data;
+    }
+
+    function esc(s) {
+      return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    document.querySelectorAll("nav button").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll("nav button").forEach(function (b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+        ["audiences", "sessions", "results"].forEach(function (name) {
+          document.getElementById("tab-" + name).classList.toggle("hidden", btn.dataset.tab !== name);
+        });
+        if (btn.dataset.tab === "sessions") loadSessions();
+        if (btn.dataset.tab === "results") loadResults();
+        if (btn.dataset.tab === "audiences") loadAudiences();
+      });
+    });
+
+    async function loadHealth() {
+      try {
+        const h = await api("/api/health");
+        document.getElementById("health").textContent = "OK · " + h.dbPath;
+      } catch (e) {
+        document.getElementById("health").textContent = "API недоступен: " + e.message;
+      }
+    }
+
+    async function loadAudiences() {
+      const rows = await api("/api/audiences");
+      if (!rows.length) {
+        document.getElementById("a-list").innerHTML = "<p class='sub'>Пока пусто</p>";
+        return;
+      }
+      document.getElementById("a-list").innerHTML =
+        "<table><thead><tr><th>id</th><th>name</th><th>expected</th><th>real</th><th>result</th><th>params</th><th></th></tr></thead><tbody>" +
+        rows.map(function (r) {
+          return "<tr>" +
+            "<td>" + r.id + "</td>" +
+            "<td>" + esc(r.name) + "<div class='mono'>" + esc(r.calltouch_audience_id) + "</div></td>" +
+            "<td>" + esc(r.expected_clients) + "</td>" +
+            "<td>" + esc(r.real_clients) + "</td>" +
+            "<td>" + esc(r.test_result) + "</td>" +
+            "<td class='mono'>" + esc(JSON.stringify(r.params)) + "</td>" +
+            "<td class='actions'><button type='button' data-del-a='" + r.id + "'>Удалить</button></td>" +
+            "</tr>";
+        }).join("") +
+        "</tbody></table>";
+      document.querySelectorAll("[data-del-a]").forEach(function (btn) {
+        btn.addEventListener("click", async function () {
+          if (!confirm("Удалить audience #" + btn.dataset.delA + "?")) return;
+          await api("/api/audiences/" + btn.dataset.delA, { method: "DELETE" });
+          loadAudiences();
+        });
+      });
+    }
+
+    document.getElementById("a-create").addEventListener("click", async function () {
+      const msg = document.getElementById("a-msg");
+      msg.textContent = "";
+      try {
+        const params = JSON.parse(document.getElementById("a-params").value || "{}");
+        await api("/api/audiences", {
+          method: "POST",
+          body: JSON.stringify({
+            name: document.getElementById("a-name").value.trim(),
+            calltouch_audience_id: document.getElementById("a-ct-id").value.trim() || null,
+            expected_clients: numOrNull(document.getElementById("a-expected").value),
+            lacmus: numOrNull(document.getElementById("a-lacmus").value),
+            clients_count: numOrNull(document.getElementById("a-lacmus").value),
+            params: params
+          })
+        });
+        msg.className = "ok";
+        msg.textContent = "Создано";
+        loadAudiences();
+      } catch (e) {
+        msg.className = "err";
+        msg.textContent = e.message;
+      }
+    });
+
+    function numOrNull(v) {
+      if (v === "" || v == null) return null;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    async function loadSessions() {
+      const rows = await api("/api/sessions");
+      if (!rows.length) {
+        document.getElementById("s-list").innerHTML = "<p class='sub'>Пока пусто</p>";
+        return;
+      }
+      document.getElementById("s-list").innerHTML =
+        "<table><thead><tr><th>id</th><th>role</th><th>cohort</th><th>status</th><th>ip</th><th>ecom</th></tr></thead><tbody>" +
+        rows.map(function (r) {
+          return "<tr>" +
+            "<td>" + r.id + "</td>" +
+            "<td>" + esc(r.role) + "</td>" +
+            "<td>" + esc(r.cohort) + "</td>" +
+            "<td>" + esc(r.status) + "</td>" +
+            "<td class='mono'>" + esc(r.ip) + "</td>" +
+            "<td class='mono'>" + esc(JSON.stringify(r.ecom_events)) + "</td>" +
+            "</tr>";
+        }).join("") +
+        "</tbody></table>";
+    }
+
+    async function loadResults() {
+      const rows = await api("/api/test-results");
+      if (!rows.length) {
+        document.getElementById("r-list").innerHTML = "<p class='sub'>Пока пусто</p>";
+        return;
+      }
+      document.getElementById("r-list").innerHTML =
+        "<table><thead><tr><th>id</th><th>session</th><th>audience</th><th>result</th><th>webhook</th><th>note</th></tr></thead><tbody>" +
+        rows.map(function (r) {
+          return "<tr>" +
+            "<td>" + r.id + "</td>" +
+            "<td>" + r.session_id + "</td>" +
+            "<td>" + r.audience_id + "</td>" +
+            "<td>" + esc(r.result) + "</td>" +
+            "<td>" + esc(r.webhook_unique) + "</td>" +
+            "<td>" + esc(r.note) + "</td>" +
+            "</tr>";
+        }).join("") +
+        "</tbody></table>";
+    }
+
+    loadHealth();
+    loadAudiences();
+  </script>
+</body>
+</html>
