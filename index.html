@@ -12,6 +12,16 @@
   <div class="container">
     <div class="form">
       <p class="sandbox-version" id="sandbox-version">NKH Sandbox · v2</p>
+      <script>
+        (function () {
+          var el = document.getElementById("sandbox-version");
+          if (!el) return;
+          var host = location.hostname || "";
+          var env = /^(localhost|127\.0\.0\.1)$/i.test(host) ? "local" : "web";
+          el.textContent = "NKH Sandbox · v2 " + env;
+          document.title = "NKH Sandbox v2 " + env;
+        })();
+      </script>
     <!-- <form action=""> -->
       <h3><a class="calltouch_phone" href="tel:+79000000000">+7 900 000 00 00</a></h3>
       <input type="text" id="name" placeholder="Your Name" required>
